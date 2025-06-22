@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? 'Edit Task' : 'New Task'">New Task</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #004D40 0%, #00796B 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ECEFF1;
+        }
+        .form-container {
+            background: rgba(236, 239, 241, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            color: #37474F;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #004D40;
+            font-weight: 600;
+        }
+        .form-label {
+            color: #004D40;
+            font-weight: 500;
+        }
+        .form-control {
+            border-color: #B0BEC5;
+        }
+        .form-control:focus {
+            border-color: #00796B;
+            box-shadow: 0 0 0 0.25rem rgba(0, 121, 107, 0.25);
+        }
+        .btn-primary {
+            background-color: #00796B;
+            border-color: #00796B;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #004D40;
+            border-color: #004D40;
+        }
+        .btn-secondary {
+            background-color: #78909C;
+            border-color: #78909C;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background-color: #607D8B;
+            border-color: #607D8B;
+        }
+        .checkbox-label {
+            color: #004D40;
+            font-weight: 500;
+        }
+        .alert-danger {
+            background-color: #FFCDD2;
+            color: #D32F2F;
+            border-color: #EF9A9A;
+        }
+        .alert-success {
+            background-color: #DCEDC8;
+            color: #388E3C;
+            border-color: #A5D6A7;
+        }
+        .char-count {
+            font-size: 0.85em;
+            color: #78909C;
+        }
+        .task-info-card {
+            background: #E0F2F1;
+            border-left: 5px solid #00796B;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 25px;
+        }
+        .task-info-card h6 {
+            color: #004D40;
+            font-weight: 600;
+        }
+        .task-info-card small {
+            color: #4CAF50 !important;
+        }
+        .task-info-card small i {
+            color: #00796B;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column align-items-center justify-content-center">
+
+<div class="container form-container rounded-3 shadow-lg">
+    <h1 class="mb-4 text-center" th:text="${isEdit} ? 'Edit Task' : 'Create New Task'">Create New Task</h1>
+
+    <form th:action="${isEdit} ? @{/tasks/save/{id}(id=${task.id})} : @{/tasks/save}" th:object="${task}" method="post">
+        <input type="hidden" th:field="*{id}" />
+        <input type="hidden" th:field="*{createdAt}" th:if="${isEdit}" />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Task Name</label>
+            <input type="text" class="form-control" id="name" th:field="*{name}"
+                   maxlength="100" onkeyup="updateCharacterCount('name', 100)" required>
+            <div class="text-end char-count">
+                <span id="name-count">0/100</span>
+            </div>
+            <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="alert alert-danger mt-2"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description (Optional)</label>
+            <textarea class="form-control" id="description" th:field="*{description}" rows="3"
+                      maxlength="500" onkeyup="updateCharacterCount('description', 500)"></textarea>
+            <div class="text-end char-count">
+                <span id="description-count">0/500</span>
+            </div>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="completed" th:field="*{completed}">
+            <label class="form-check-label checkbox-label" for="completed">Mark as Completed</label>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save me-2"></i> Save Task
+            </button>
+            <a th:href="@{/tasks}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times-circle me-2"></i> Cancel
+            </a>
+        </div>
+    </form>
+
+    <div th:if="${isEdit}" class="task-info-card mt-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Task Information
+            </h6>
+            <small class="text-muted" style="display: block; margin-bottom: 5px;">
+                <i class="fas fa-calendar-plus me-1"></i>
+                Created On: <span th:text="${#temporals.format(task.createdAt, 'dd-MM-yyyy HH:mm')}\"></span>
+            </small>
+            <small th:if="${task.completed and task.completedAt != null}" class="text-muted" style="display: block;">
+                <i class="fas fa-calendar-check me-1"></i>
+                Completed On: <span th:text="${#temporals.format(task.completedAt, 'dd-MM-yyyy HH:mm')}"></span>
+            </small>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Function to update character count
+    function updateCharacterCount(fieldId, maxLength) {
+        const field = document.getElementById(fieldId);
+        const countSpan = document.getElementById(fieldId + '-count');
+        if (field && countSpan) {
+            const currentLength = field.value.length;
+            countSpan.textContent = currentLength + '/' + maxLength;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCharacterCount('name', 100);
+        updateCharacterCount('description', 500);
+    });
+</script>
+</body>
+</html>

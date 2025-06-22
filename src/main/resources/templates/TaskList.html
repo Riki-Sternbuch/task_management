@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #004D40 0%, #00796B 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ECEFF1;
+        }
+        .main-container {
+            background: rgba(236, 239, 241, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            color: #37474F;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #004D40;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background-color: #00796B;
+            border-color: #00796B;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #004D40;
+            border-color: #004D40;
+        }
+        .btn-success {
+            background-color: #66BB6A;
+            border-color: #66BB6A;
+        }
+        .btn-success:hover {
+            background-color: #4CAF50;
+        }
+        .btn-danger {
+            background-color: #EF5350;
+            border-color: #EF5350;
+        }
+        .btn-secondary {
+            background-color: #78909C;
+            border-color: #78909C;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background-color: #607D8B;
+            border-color: #607D8B;
+        }
+        .task-card {
+            background: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .task-card.completed {
+            background-color: #E0F2F7;
+            opacity: 0.8;
+            border-left: 5px solid #004D40;
+        }
+        .task-card .task-title {
+            font-weight: 600;
+            color: #004D40;
+        }
+        .text-muted, small {
+            color: #78909C !important;
+        }
+        .task-icon {
+            color: #004D40;
+        }
+        .progress-bar-custom {
+            background-color: #00796B;
+        }
+        .filter-buttons .btn {
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.9em;
+        }
+        .filter-buttons .btn.active {
+            background-color: #004D40;
+            border-color: #004D40;
+            color: #fff;
+        }
+        .search-bar .input-group-text {
+            background-color: #004D40;
+            border-color: #004D40;
+            color: #fff;
+        }
+        .form-control:focus {
+            border-color: #00796B;
+            box-shadow: 0 0 0 0.25rem rgba(0, 121, 107, 0.25);
+        }
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 350px;
+        }
+        .alert-container .alert {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideIn 0.5s forwards;
+        }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column align-items-center justify-content-center">
+
+<div class="alert-container">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<div class="container main-container p-4 rounded-3 shadow-lg">
+    <h1 class="mb-4 text-center">Task Management System</h1>
+
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-4 d-flex justify-content-start">
+            <a th:href="@{/tasks/new}" class="btn btn-primary d-flex align-items-center">
+                <i class="fas fa-plus-circle me-2"></i> Add New Task
+            </a>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="btn-group filter-buttons" role="group" aria-label="Task Filters">
+                <a th:href="@{/tasks(filter='all', query=${query})}"
+                   th:classappend="${activeFilter == 'all' ? 'active' : ''}"
+                   class="btn btn-secondary">All</a>
+                <a th:href="@{/tasks(filter='completed', query=${query})}"
+                   th:classappend="${activeFilter == 'completed' ? 'active' : ''}"
+                   class="btn btn-secondary">Completed</a>
+                <a th:href="@{/tasks(filter='pending', query=${query})}"
+                   th:classappend="${activeFilter == 'pending' ? 'active' : ''}"
+                   class="btn btn-secondary">Pending</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <form th:action="@{/tasks}" method="get" class="d-flex search-bar">
+                <input type="hidden" name="filter" th:value="${activeFilter}" />
+                <div class="input-group">
+                    <input type="text" name="query" class="form-control" placeholder="Search tasks..."
+                           th:value="${query != null ? query : ''}" aria-label="Search tasks">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${tasks.isEmpty()}" class="alert alert-info text-center mt-4">
+        <span th:if="${searchResults}">
+            <i class="fas fa-info-circle me-2"></i> No tasks found matching your search query.
+        </span>
+        <span th:unless="${searchResults}">
+            <i class="fas fa-info-circle me-2"></i> No tasks available. Click 'Add New Task' to get started!
+        </span>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="task-list-cards">
+        <div class="col" th:each="task : ${tasks}">
+            <div th:classappend="${task.completed ? 'completed' : ''}" class="card task-card h-100 shadow-sm border-0">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title task-title mb-2 d-flex align-items-center">
+                        <i th:classappend="${task.completed ? 'fa-check-circle text-success' : 'fa-circle text-warning'}"
+                           class="fas me-2 task-icon"></i>
+                        <span th:text="${task.name}">Task Name</span>
+                    </h5>
+                    <p class="card-text text-muted mb-3 flex-grow-1" th:text="${task.description} ?: 'No description provided.'">
+                        Task Description
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <div class="text-muted small">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            Created: <span th:text="${#temporals.format(task.createdAt, 'dd-MM-yyyy HH:mm')}"></span>
+                            <small th:if="${task.completed and task.completedAt != null}" class="text-muted" style="display: block;">
+                                <br><i class="fas fa-calendar-check me-1"></i>
+                                Completed: <span th:text="${#temporals.format(task.completedAt, 'dd-MM-yyyy HH:mm')}"></span>
+                            </small>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/tasks/edit/{id}(id=${task.id})}" class="btn btn-sm btn-secondary" title="Edit Task">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form th:action="@{${task.completed ? '/tasks/incomplete/' : '/tasks/complete/'} + ${task.id}}"
+                                  method="post" style="display:inline;">
+                                <button type="submit"
+                                        th:classappend="${task.completed ? 'btn-warning' : 'btn-success'}"
+                                        class="btn btn-sm"
+                                        th:title="${task.completed ? 'Mark as Incomplete' : 'Mark as Complete'}">
+                                    <i th:classappend="${task.completed ? 'fa-hourglass-half' : 'fa-check'}"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/tasks/delete/{id}(id=${task.id})}" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Delete Task">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card stats-card p-4 mt-5 rounded-3 shadow-sm">
+        <h3 class="mb-4 text-center">Task Statistics</h3>
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="stats-item">
+                    <h4 id="totalTasksCount" class="mb-1">0</h4> <p class="text-muted small">Total Tasks</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-item">
+                    <h4 id="completedTasksCount" class="mb-1">0</h4> <p class="text-muted small">Completed</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-item">
+                    <h4 id="pendingTasksCount" class="mb-1">0</h4> <p class="text-muted small">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="progress mb-3" style="height: 25px;">
+            <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <p id="productivityMessage" class="text-center h5 mb-0 text-muted">Loading productivity message...</p>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Staggered animation for task cards
+        const taskCards = document.querySelectorAll('.task-card');
+        taskCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 120);
+        });
+
+        // Real-time statistics update
+        async function updateStatistics() {
+            try {
+                const response = await fetch(window.location.origin + '/tasks/api/statistics');
+                const stats = await response.json();
+                console.log('Statistics updated:', stats);
+
+                // עדכון הסטטיסטיקות ב-DOM באמצעות ID-ים
+                document.getElementById('totalTasksCount').textContent = stats.totalTasks;
+                document.getElementById('completedTasksCount').textContent = stats.completedTasks;
+                document.getElementById('pendingTasksCount').textContent = stats.pendingTasks;
+                document.querySelector('.progress-bar-custom').style.width = stats.completionPercentage + '%';
+                document.querySelector('.progress-bar-custom').setAttribute('aria-valuenow', stats.completionPercentage);
+                document.querySelector('.progress-bar-custom').textContent = stats.completionPercentage + '% Completed';
+                document.getElementById('productivityMessage').textContent = stats.productivityMessage;
+
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
+        }
+
+        updateStatistics();
+        setInterval(updateStatistics, 30000);
+
+        // Hide alert messages after a few seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
+</script>
+</body>
+</html>
