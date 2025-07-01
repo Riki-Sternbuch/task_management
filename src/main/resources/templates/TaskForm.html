@@ -102,7 +102,7 @@
 <div class="container form-container rounded-3 shadow-lg">
     <h1 class="mb-4 text-center" th:text="${isEdit} ? 'Edit Task' : 'Create New Task'">Create New Task</h1>
 
-    <form th:action="${isEdit} ? @{/tasks/save/{id}(id=${task.id})} : @{/tasks/save}" th:object="${task}" method="post">
+    <form th:action="@{/tasks/save}" th:object="${task}" method="post">
         <input type="hidden" th:field="*{id}" />
         <input type="hidden" th:field="*{createdAt}" th:if="${isEdit}" />
 
@@ -148,7 +148,7 @@
             </h6>
             <small class="text-muted" style="display: block; margin-bottom: 5px;">
                 <i class="fas fa-calendar-plus me-1"></i>
-                Created On: <span th:text="${#temporals.format(task.createdAt, 'dd-MM-yyyy HH:mm')}\"></span>
+                Created On: <span th:text="${#temporals.format(task.createdAt, 'dd-MM-yyyy HH:mm')}"></span>
             </small>
             <small th:if="${task.completed and task.completedAt != null}" class="text-muted" style="display: block;">
                 <i class="fas fa-calendar-check me-1"></i>
